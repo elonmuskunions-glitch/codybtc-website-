@@ -1,10 +1,176 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>My First GitHub Website</title>
+<meta charset="UTF-8">
+<title>Mini Facebook Page</title>
+<style>
+  /* General Styles */
+  body {
+    font-family: Arial, sans-serif;
+    background: #e9ebee;
+    margin: 0;
+    padding: 0;
+  }
+
+  header {
+    background: #4267B2;
+    color: white;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  header h1 {
+    margin: 0;
+    font-size: 2rem;
+  }
+
+  header p {
+    margin: 0.5rem 0 0;
+  }
+
+  main {
+    max-width: 600px;
+    margin: 2rem auto;
+  }
+
+  /* New Post Form */
+  #new-post {
+    display: flex;
+    margin-bottom: 1rem;
+  }
+
+  #new-post input {
+    flex: 1;
+    padding: 0.5rem;
+    border-radius: 4px 0 0 4px;
+    border: 1px solid #ccc;
+    outline: none;
+  }
+
+  #new-post button {
+    padding: 0.5rem 1rem;
+    border: none;
+    background: #4267B2;
+    color: white;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+
+  #new-post button:hover {
+    background: #365899;
+  }
+
+  /* Feed */
+  .post {
+    background: white;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+  }
+
+  .post:hover {
+    transform: scale(1.01);
+  }
+
+  .post h3 {
+    margin: 0 0 0.5rem 0;
+    color: #4267B2;
+  }
+
+  .post button {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background: #e4e6eb;
+    color: #050505;
+    margin-top: 0.5rem;
+  }
+
+  .post button:hover {
+    background: #d8dadf;
+  }
+
+  footer {
+    text-align: center;
+    padding: 1rem;
+    background: #4267B2;
+    color: white;
+    margin-top: 2rem;
+  }
+</style>
 </head>
 <body>
-    <h1>Hello, World!</h1>
-    <p>This is my first website live on GitHub Pages!</p>
+
+<header>
+  <h1>Cody</h1>
+  <p>Developer | Maker | Innovator</p>
+</header>
+
+<main>
+  <!-- New Post -->
+  <div id="new-post">
+    <input type="text" id="postText" placeholder="What's on your mind?" />
+    <button onclick="addPost()">Post</button>
+  </div>
+
+  <!-- Feed -->
+  <section id="feed">
+    <div class="post">
+      <h3>Cody</h3>
+      <p>Hello world! This is my first post.</p>
+      <button onclick="likePost(this)">Like</button>
+    </div>
+    <div class="post">
+      <h3>Friend</h3>
+      <p>This is another post in the feed.</p>
+      <button onclick="likePost(this)">Like</button>
+    </div>
+  </section>
+</main>
+
+<footer>
+  &copy; 2026 Cody • Mini Facebook Page
+</footer>
+
+<script>
+  // Add new post to feed
+  function addPost() {
+    const text = document.getElementById('postText').value.trim();
+    if(text === "") {
+      alert("Please write something before posting!");
+      return;
+    }
+
+    const feed = document.getElementById('feed');
+    const newDiv = document.createElement('div');
+    newDiv.className = "post";
+    newDiv.innerHTML = `
+      <h3>You</h3>
+      <p>${text}</p>
+      <button onclick="likePost(this)">Like</button>
+    `;
+    feed.prepend(newDiv);
+    document.getElementById('postText').value = "";
+  }
+
+  // Like button functionality
+  function likePost(btn) {
+    if(btn.innerText === "Like") {
+      btn.innerText = "Liked!";
+      btn.style.background = "#4267B2";
+      btn.style.color = "white";
+    } else {
+      btn.innerText = "Like";
+      btn.style.background = "#e4e6eb";
+      btn.style.color = "#050505";
+    }
+  }
+</script>
+
 </body>
-</html>
+        </html>
