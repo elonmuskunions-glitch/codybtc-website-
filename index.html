@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Mini Facebook Page</title>
+<title>Ultimate Mini Facebook</title>
 <style>
-  /* General Styles */
   body {
     font-family: Arial, sans-serif;
     background: #e9ebee;
@@ -19,26 +18,19 @@
     padding: 2rem;
   }
 
-  header h1 {
-    margin: 0;
-    font-size: 2rem;
-  }
-
-  header p {
-    margin: 0.5rem 0 0;
-  }
+  header h1 { margin: 0; font-size: 2rem; }
+  header p { margin: 0.5rem 0 0; }
 
   main {
     max-width: 600px;
     margin: 2rem auto;
   }
 
-  /* New Post Form */
+  /* New Post */
   #new-post {
     display: flex;
     margin-bottom: 1rem;
   }
-
   #new-post input {
     flex: 1;
     padding: 0.5rem;
@@ -46,7 +38,6 @@
     border: 1px solid #ccc;
     outline: none;
   }
-
   #new-post button {
     padding: 0.5rem 1rem;
     border: none;
@@ -56,12 +47,9 @@
     cursor: pointer;
     transition: background 0.3s;
   }
+  #new-post button:hover { background: #365899; }
 
-  #new-post button:hover {
-    background: #365899;
-  }
-
-  /* Feed */
+  /* Posts */
   .post {
     background: white;
     padding: 1rem;
@@ -70,16 +58,33 @@
     box-shadow: 0 0 5px rgba(0,0,0,0.1);
     transition: transform 0.2s;
   }
+  .post:hover { transform: scale(1.01); }
 
-  .post:hover {
-    transform: scale(1.01);
+  .post-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+  }
+  .avatar.cody { background: #ff4500; }
+  .avatar.friend { background: #00bfff; }
+  .avatar.you { background: #32cd32; }
+
+  .post h3 { margin: 0; font-size: 1rem; }
+  .post p { margin: 0.5rem 0; }
+
+  .post img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin-top: 0.5rem;
   }
 
-  .post h3 {
-    margin: 0 0 0.5rem 0;
-    color: #4267B2;
-  }
-
+  /* Buttons */
   .post button {
     padding: 0.25rem 0.5rem;
     font-size: 0.85rem;
@@ -88,11 +93,32 @@
     cursor: pointer;
     background: #e4e6eb;
     color: #050505;
-    margin-top: 0.5rem;
+    margin-right: 0.5rem;
   }
+  .post button:hover { background: #d8dadf; }
 
-  .post button:hover {
-    background: #d8dadf;
+  /* Comments */
+  .comments {
+    margin-top: 0.5rem;
+    border-top: 1px solid #ddd;
+    padding-top: 0.5rem;
+  }
+  .comments p { margin: 0.25rem 0; font-size: 0.85rem; }
+  .comments input {
+    width: calc(100% - 60px);
+    padding: 0.25rem;
+    margin-right: 0.25rem;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+  .comments button {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    background: #4267B2;
+    color: white;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
   }
 
   footer {
@@ -121,14 +147,26 @@
   <!-- Feed -->
   <section id="feed">
     <div class="post">
-      <h3>Cody</h3>
-      <p>Hello world! This is my first post.</p>
-      <button onclick="likePost(this)">Like</button>
+      <div class="post-header">
+        <div class="avatar cody"></div>
+        <h3>Cody</h3>
+      </div>
+      <p>Hello world! My first post.</p>
+      <img src="https://via.placeholder.com/500x200?text=My+Project" alt="Post Image">
+      <button onclick="likePost(this)">Like (<span class="count">0</span>)</button>
+      <button onclick="toggleCommentInput(this)">Comment</button>
+      <div class="comments"></div>
     </div>
+
     <div class="post">
-      <h3>Friend</h3>
+      <div class="post-header">
+        <div class="avatar friend"></div>
+        <h3>Friend</h3>
+      </div>
       <p>This is another post in the feed.</p>
-      <button onclick="likePost(this)">Like</button>
+      <button onclick="likePost(this)">Like (<span class="count">0</span>)</button>
+      <button onclick="toggleCommentInput(this)">Comment</button>
+      <div class="comments"></div>
     </div>
   </section>
 </main>
@@ -138,39 +176,69 @@
 </footer>
 
 <script>
-  // Add new post to feed
+  // Add new post
   function addPost() {
     const text = document.getElementById('postText').value.trim();
-    if(text === "") {
-      alert("Please write something before posting!");
-      return;
-    }
+    if(!text){ alert("Write something!"); return; }
 
     const feed = document.getElementById('feed');
     const newDiv = document.createElement('div');
     newDiv.className = "post";
     newDiv.innerHTML = `
-      <h3>You</h3>
+      <div class="post-header">
+        <div class="avatar you"></div>
+        <h3>You</h3>
+      </div>
       <p>${text}</p>
-      <button onclick="likePost(this)">Like</button>
+      <button onclick="likePost(this)">Like (<span class="count">0</span>)</button>
+      <button onclick="toggleCommentInput(this)">Comment</button>
+      <div class="comments"></div>
     `;
     feed.prepend(newDiv);
-    document.getElementById('postText').value = "";
+    document.getElementById('postText').value = 
+
+  // Like button
+  function likePost(btn) {
+    const span = btn.querySelector(".count");
+    let count = parseInt(span.innerText);
+    if(btn.dataset.liked === "true") {
+      count--; btn.dataset.liked = "false";
+      btn.style.background = "#e4e6eb"; btn.style.color = "#050505";
+    } else {
+      count++; btn.dataset.liked = "true";
+      btn.style.background = "#4267B2"; btn.style.color = "white";
+    }
+    span.innerText = count;
   }
 
-  // Like button functionality
-  function likePost(btn) {
-    if(btn.innerText === "Like") {
-      btn.innerText = "Liked!";
-      btn.style.background = "#4267B2";
-      btn.style.color = "white";
-    } else {
-      btn.innerText = "Like";
-      btn.style.background = "#e4e6eb";
-      btn.style.color = "#050505";
-    }
+  // Comment input
+  function toggleCommentInput(btn) {
+    const post = btn.parentElement;
+    const commentsDiv = post.querySelector(".comments");
+
+    if(post.querySelector(".comment-input")) return; // prevent multiple inputs
+
+    const div = document.createElement("div");
+    div.className = "comment-input";
+    div.innerHTML = `
+      <input type="text" placeholder="Write a comment..." />
+      <button onclick="addComment(this)">Post</button>
+    `;
+    commentsDiv.appendChild(div);
+  }
+
+  // Add comment
+  function addComment(btn) {
+    const input = btn.previousElementSibling;
+    const text = input.value.trim();
+    if(!text) return;
+    const commentP = document.createElement("p");
+    commentP.innerText = `You: ${text}`;
+    const commentsDiv = btn.parentElement.parentElement;
+    commentsDiv.insertBefore(commentP, btn.parentElement);
+    btn.parentElement.remove(); // remove input after posting
   }
 </script>
 
 </body>
-        </html>
+</html>
