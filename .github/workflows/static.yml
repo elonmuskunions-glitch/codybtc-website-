@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mini Facebook Polished</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body { font-family: Arial,sans-serif; margin:0; padding:0; background:#e9ebee; }
+header { background:#4267B2; color:white; text-align:center; padding:1.5rem; }
+header h1{margin:0; font-size:1.8rem;}
+header p{margin:0.3rem 0 0;}
+main { max-width:600px; margin:2rem auto; padding:0 1rem; }
+#new-post { display:flex; margin-bottom:1rem; }
+#new-post input { flex:1; padding:0.5rem; border-radius:20px 0 0 20px; border:1px solid #ccc; }
+#new-post button { padding:0.5rem 1rem; border:none; border-radius:0 20px 20px 0; background:#4267B2; color:white; cursor:pointer; }
+#new-post button:hover { background:#365899; }
+.post { background:white; border-radius:10px; padding:1rem; margin-bottom:1rem; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+.post-header { display:flex; align-items:center; margin-bottom:0.5rem; }
+.avatar { width:40px; height:40px; border-radius:50%; margin-right:0.5rem; flex-shrink:0; display:flex; justify-content:center; align-items:center; color:white; font-weight:bold; font-size:0.85rem; }
+.avatar.friend1 { background:#00bfff; }
+.avatar.friend2 { background:#32cd32; }
+.avatar.friend3 { background:#ff69b4; }
+.avatar.you { background:#ffa500; }
+.post h3{margin:0;font-size:1rem;font-weight:bold;}
+.post p{margin:0.5rem 0;}
+.post img { max-width:100%; border-radius:10px; margin:0.5rem 0; }
+.post-actions { display:flex; flex-wrap:wrap; margin-top:0.5rem; }
+.post-actions button { flex:1 0 48%; padding:0.4rem; margin:0.25rem 0.25rem 0 0; border:none; border-radius:5px; cursor:pointer; background:#e4e6eb; color:#050505; font-size:0.85rem; transition:0.2s; }
+.post-actions button:hover { background:#d8dadf; }
+.comments { margin-top:0.5rem; border-top:1px solid #ddd; padding-top:0.5rem; }
+.comments p { margin:0.25rem 0; font-size:0.85rem; }
+.comments input { width: calc(100% - 100px); padding:0.25rem; margin-right:0.25rem; border-radius:15px; border:1px solid #ccc; }
+.comments button { padding:0.25rem 0.5rem; font-size:0.75rem; border:none; border-radius:15px; background:#4267B2; color:white; cursor:pointer; }
+.timestamp { font-size:0.7rem; color:#555; display:block; margin-top:0.2rem; }
+footer { text-align:center; padding:1rem; background:#4267B2; color:white; margin-top:2rem; }
+@media(max-width:640px){ main { margin:1rem; } #new-post input, #new-post button { font-size:0.9rem; } }
+</style>
+</head>
+<body>
+<header>
+<h1>Cody</h1>
+<p>Developer | Maker | Innovator</p>
+</header>
+
+<main>
+<div id="new-post">
+<input type="text" id="postText" placeholder="What's on your mind?" />
+<button onclick="addPost()">Post</button>
+</div>
+<section id="feed"></section>
+</main>
+
+<footer>&copy; 2026 Cody • Mini Facebook Polished</footer>
+
+<script>
+const SERVER_URL="https://YOUR_SERVER_URL"; // replace with your backend URL
+const feed=document.getElementById("feed");
+
+// Friend avatars pool
+const friends=[
+  {name:"Alice",avatarClass:"friend1"},
+  {name:"Bob",avatarClass:"friend2"},
+  {name:"Charlie",avatarClass:"friend3"}
+];
+
+function formatTime(ts){ return new Date(ts).toLocaleString(); }
+
+// Load posts
+async function loadPosts(){
+  try{
+    const res=await fetch(`${SERVER_URL}/posts`);
+    const data=await res.json();
+    feed.innerHTML="";
+    data.data.forEach(post=>{
+      const div=document.createElement("div");
+      div.className="post";
+      div.dataset.id=post.id;
+
+      // Multiple images
+      let imgHTML="";
+      if(post.attachments && post.attachments.data){
+        post.attachments.data.forEach(att=>{
+          if(att.media && att.media.image) imgHTML+=`<img src="${att.media.image.src}">`;
+        });
+      }
+
+      // Comments
+      let commentsHTML="";
+      if(post.comments && post.comments.data){
+        post.comments.data.forEach(c=>{
+          const friend= friends.find(f=>f.name===c.from.name) || {name:c.from.name,avatarClass:"friend1"};
+          commentsHTML+=`<p><span class="avatar ${friend.avatarClass}">${friend.name[0]}</span> <strong>${c.from.name}</strong>: ${c.message} <span class="timestamp">${formatTime(c.created_time)}</span></p>`;
+        });
+      }
+
+      const reactionsHTML=`
+        <button onclick="reactPost(this,'LIKE')">👍 Like (${post.like?.summary?.total_count||0})</button>
+        <button onclick="reactPost(this,'LOVE')">❤️ Love (${post.love?.summary?.total_count||0})</button>
+        <button onclick="reactPost(this,'HAHA')">😆 Haha (${post.haha?.summary?.total_count||0})</button>
+        <button onclick="reactPost(this,'WOW')">😮 Wow (${post.wow?.summary?.total_count||0})</button>
+        <button onclick="toggleCommentInput(this)">Comment</button>
+      `;
+
+      const avatar=post.from.name==="Cody"?"you":friends[Math.floor(Math.random()*friends.length)].avatarClass;
+
+      div.innerHTML=`
+        <div class="post-header">
+          <div class="avatar ${avatar}">${post.from.name[0]}</div>
+          <h3>${post.from.name}</h3>
+        </div>
+        <p>${post.message || ""}</p>
+        ${imgHTML}
+        <span class="timestamp">${formatTime(post.created_time)}</span>
+        <div class="post-actions">${reactionsHTML}</div>
+        <div class="comments">${commentsHTML}</div>
+      `;
+      feed.appendChild(div);
+    });
+  }catch(e){ console.error(e); }
+}
+
+// Add new post
+async function addPost(){
+  const text=document.getElementById("postText").value.trim();
+  if(!text) return;
+  await fetch(`${SERVER_URL}/post`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({message:text})
+  });
+  document.getElementById("postText").value="";
+  loadPosts();
+}
+
+// React
+async function reactPost(btn,type){
+  const postId=btn.closest(".post").dataset.id;
+  await fetch(`${SERVER_URL}/react`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({postId,type})
+  });
+  loadPosts();
+}
+
+// Comments
+function toggleCommentInput(btn){
+  const post=btn.closest(".post");
+  const commentsDiv=post.querySelector(".comments");
+  if(post.querySelector(".comment-input")) return;
+  const div=document.createElement("div");
+  div.className="comment-input";
+  div.innerHTML=`<input type="text" placeholder="Write a comment..." /><button onclick="addComment(this)">Post</button>`;
+  commentsDiv.appendChild(div);
+}
+
+async function addComment(btn){
+  const input=btn.previousElementSibling;
+  const text=input.value.trim();
+  if(!text) return;
+  const postId=btn.closest(".post").dataset.id;
+  await fetch(`${SERVER_URL}/comment`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({postId,message:text})
+  });
+  input.value="";
+  loadPosts();
+}
+
+// Load feed initially
+loadPosts();
+setInterval(loadPosts,7000);
+
+// Simulate random friend activity
+function simulateFriendActivity(){
+  const posts=document.querySelectorAll(".post");
+  if(posts.length===0) return;
+  const post=posts[Math.floor(Math.random()*posts.length)];
+  const action=Math.random()<0.5?"react":"comment";
+  if(action==="react"){
+    const btn=post.querySelector(".post-actions button:nth-child(1)");
+    reactPost(btn,'LIKE');
+  } else {
+    const commentsDiv=post.querySelector(".comments");
+    const friend=friends[Math.floor(Math.random()*friends.length)];
+    const p=document.createElement("p");
+    p.innerHTML=`<span class="avatar ${friend.avatarClass}">${friend.name[0]}</span> <strong>${friend.name}</strong>: Nice post! <span class="timestamp">${new Date().toLocaleString()}</span>`;
+    commentsDiv.appendChild(p);
+  }
+}
+setInterval(simulateFriendActivity,Math.random()*3000+2000);
+</script>
+</body>
+</html>
