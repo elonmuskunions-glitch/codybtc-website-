@@ -1,0 +1,49 @@
+from telethon import TelegramClient
+import pandas as pd
+import random
+import schedule
+import time
+
+# ====== CONFIG ======
+api_id = 123456  # replace with your API ID
+api_hash = 'your_api_hash_here'
+monetag_link = 'https://monetag.xyz/xxxxx'  # replace with your direct link
+csv_file = 'channels.csv'
+
+# Templates (rotate automatically)
+templates = [
+    "People keep asking about this 👀\nWorks instantly, no signup\n\n👉 {link}",
+    "Just tested this. Didn’t expect it to work tbh.\n\n👉 {link}",
+    "This is getting taken down in some places\nCheck it while it’s still up\n\n👉 {link}",
+    "Quick test I did today 👀\nWorks on Android & iPhone\n\n👉 {link}"
+]
+
+# ====== SETUP TELEGRAM CLIENT ======
+client = TelegramClient('monetag_bot_session', api_id, api_hash)
+
+# ====== LOAD CHANNELS ======
+channels_df = pd.read_csv(csv_file)
+channels = channels_df['channel_id'].tolist()
+
+# ====== POST FUNCTION ======
+async def post_message():
+    for channel_id in channels:
+        message = random.choice(templates).format(link=monetag_link)
+        try:
+            await client.send_message(channel_id, message)
+            print(f"Posted to {channel_id}: {message[:30]}...")
+        except Exception as e:
+            print(f"Failed to post to {channel_id}: {e}")
+
+# ====== SCHEDULER ======
+def schedule_posting():
+    # Schedule every 60 minutes (adjust as needed)
+    schedule.every(60).minutes.do(lambda: client.loop.run_until_complete(post_message()))
+    print("Scheduler started... Posting every 60 minutes")
+    while True:
+        schedule.run_pending()
+        time.sleep(10)
+
+# ====== RUN CLIENT ======
+with client:
+    schedule_posting()
